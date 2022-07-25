@@ -1,11 +1,25 @@
 import React from 'react';
 const ExcelJs = require("exceljs");
-//input data
-const product_Description=['Testing Product 001 (0000-0000-0000-0000)','Testing Product 002 (0000-0000-0000-0000)',
-				'Testing Product 003 (0000-0000-0000-0000)'];
-const product_UnitPrice=['10.00','33.69','21.13'];
-const product_QTY=['1','1','1'];
-
+//input product data
+const ArrayOfProductObject=[
+	{
+		description:'Testing Product 001 (0000-0000-0000-0000)',
+		unitPrice:'10.00',
+		quantity:'1',
+	},
+	{
+		description:'Testing Product 002 (0000-0000-0000-0000)',
+		unitPrice:'33.69',
+		quantity:'1',
+	},
+	{
+		description:'Testing Product 003 (0000-0000-0000-0000)',
+		unitPrice:'21.13',
+		quantity:'1',
+	},
+]
+// discount amount
+let discount=0.2;
 const titleFont={
 	bold:true,
 	color: {argb:'FFFFFFFF'},
