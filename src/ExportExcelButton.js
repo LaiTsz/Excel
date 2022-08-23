@@ -6,40 +6,43 @@ const ArrayOfProductObject=[
 		description:'Testing Product 001 (0000-0000-0000-0000)',
 		unitPrice:'10.00',
 		quantity:'1',
+		DiscountRate:15,
 	},
 	{
 		description:'Testing Product 002 (0000-0000-0000-0000)',
 		unitPrice:'33.69',
 		quantity:'1',
+		DiscountRate:15,
 	},
 	{
 		description:'Testing Product 003 (0000-0000-0000-0000)',
 		unitPrice:'21.13',
 		quantity:'1',
+		DiscountRate:12,
 	},
 ]
 // discount amount
 let discount=0.2;
+let exchangeRate=7.9;
 const titleFont={
 	bold:true,
 	color: {argb:'FFFFFFFF'},
-};
-const linkStyle = {
-	underline: true,
-	color: { argb: 'FF0000FF' },
 };
 function ExportExcelButton (){
   function onClick(){
     const workbook = new ExcelJs.Workbook(); 
     const sheet = workbook.addWorksheet('Page1',{views: [{showGridLines: false}]});
 	
-	sheet.getColumn(1).width=35;
-	sheet.getColumn(2).width=35;
-	sheet.getColumn(3).width=10;
-	sheet.getColumn(4).width=6;
-	sheet.getColumn(6).width=15;
+	sheet.getColumn(1).width=40;
+	sheet.getColumn(2).width=40;
+	sheet.getColumn(3).width=15;
+	sheet.getColumn(4).width=5;
+	sheet.getColumn(5).width=1;
+	sheet.getColumn(6).width=12;
+	sheet.getColumn(7).width=12;
+	sheet.getColumn(8).width=22;
   	const row=sheet.getRow(1);
-	row.height=40;
+	row.height=42;
 	function Merge(start,end,content,align){
 		sheet.mergeCells(start+':'+end);
 		sheet.getCell(start).value=content;
@@ -98,6 +101,10 @@ function ExportExcelButton (){
 				fillBackgroundColor('D'+row,'FFFFFFFF');
 			}
 	}
+	function addContextAndAlign(cell,context,aligns){
+		sheet.getCell(cell).value=context;
+		sheet.getCell(cell).alignment={vertical: 'middle',horizontal: aligns};
+	}
 	function totalAmount(){
 		let sum=0;
 		for(let i=0;i<ArrayOfProductObject.length;i++)
@@ -105,39 +112,36 @@ function ExportExcelButton (){
 		return sum;
 	}
 		//Customer Object
-		sheet.getCell('A1').value='XXXXX Limited';
+		Merge('A1','C1','XXXXX Limited')
+		addContextAndAlign('A1','XXXXX Limited','left')
+		sheet.getCell('A1').alignment = { 
+			indent: 5,
+			vertical: 'middle'
+		};
 		sheet.getCell('A1').font={
-			size: 20,
-			color: { argb: 'FF366092' },
+			size: 20
 		};
 		addTitle('A9','CUSTOMER');
-		
-		sheet.getCell('A1').alignment={vertical: 'middle',horizontal: "center"};
-		sheet.getCell('A2').value='ABC Plaze,';
+		sheet.getCell('A2').value='Unit XXX XXX Centre, ';
 		sheet.getCell('A3').value='Hong Kong, Hong Kong';
 		sheet.getCell('A4').value='Website:';
 		sheet.getCell('A5').value='Phone:';
 		sheet.getCell('A7').value='Prepare by: Testing';
-		sheet.getCell('A10').value='Testing solutions Limited:';
-		sheet.getCell('A11').value='Testing Wan';
-		sheet.getCell('A12').value={ text: 'testing@testing.com', hyperlink: 'testing@testing.com' };
-		sheet.getCell('A12').font=linkStyle;
-		sheet.getCell('A13').value='+852 12311923';
-		sheet.getCell('A14').value='General Manager ';
+		sheet.getCell('A10').value='BiB Solutions';
 		//Data_Object 
-		Merge('D1','F1','Invoice ','right')
-		sheet.getCell('D1').font={
+		Merge('E1','H1','Invoice ','right')
+		sheet.getCell('E1').font={
 			size: 26,
 			color: { argb: 'FF8DB4E2' },
 		};
-		Merge('D3','E3','Data ','right')
-		Merge('D4','E4','INVOICE# ','right')
-		Merge('D5','E5','CUSTOMER ID ','right')
-		Merge('D6','E6','VALID UNTIL ','right')
-		addDataObject('F3','8/7/2022','center','medium');
-		addDataObject('F4','INV-INO-202207','center','medium');
-		addDataObject('F5','AAA001','center','medium');
-		addDataObject('F6','7/8/2022','center','medium');
+		addContextAndAlign('E3','Data ','right')
+		addContextAndAlign('E4','INVOICE# ','right')
+		addContextAndAlign('E5','CUSTOMER ID ','right')
+		addContextAndAlign('E6','VALID UNTIL ','right')
+		addDataObject('H3','8/7/2022','center','thin');
+		addDataObject('H4','INV-INO-202207','center','thin');
+		addDataObject('H5','AAA001','center','thin');
+		addDataObject('H6','7/8/2022','center','thin');
 		//add Product Array title	
 		Merge('A16','B16','Invoice ','left');
 		addTitle('A16','DESCRIPTION','left');
@@ -162,28 +166,25 @@ function ExportExcelButton (){
 		}
 		//TermsAndConditions
 		function printTermsAndConditions(row){
-			Merge('A'+row,'C'+row,'','left');
+			Merge('A'+row,'B'+row,'','left');
 			addTitle('A'+row,'TERMS AND CONDITIONS','left');
-			Merge('A'+(row+1),'C'+(row+1),'1.Payment Terms: 30 Day after invoice','left');
-			Merge('A'+(row+2),'C'+(row+2),'2.Deposit: 1 monthly consumption(Waived)','left');
-			Merge('A'+(row+3),'C'+(row+3),'3.Please fax or mail the signed price quote to the address above','left');
-			Merge('A'+(row+4),'C'+(row+4),'Customer Acceptance(sign below);','left');
-			sheet.getCell('A'+(row+4)).font={italic:true};
-			Merge('A'+(row+5),'C'+(row+5),'Bank info:XX Bank//XX 銀行','left');
-			Merge('A'+(row+6),'C'+(row+6),'','left');
-			sheet.getCell('A'+(row+6)).value='              Testing Limited'; 
-			sheet.getCell('A'+(row+6)).font={bold: true};
-			Merge('A'+(row+7),'C'+(row+7),'','left');
-			sheet.getCell('A'+(row+7)).value='          Acot No:12345678';
+			sheet.getCell('A'+(row+1)).value='1.Payment Terms: 14 Day after invoice';
+			sheet.getCell('A'+(row+2)).value='2.Exchange Rate :'+exchangeRate;
+			sheet.getCell('A'+(row+3)).value='Bank info : XXX Bank /XX銀行';
+			sheet.getCell('A'+(row+4)).value='                 XXX Company Limited ';
+			sheet.getCell('A'+(row+5)).value='                 Acct No : 6549813';
 			Merge('A'+(row+8),'C'+(row+8),'','left');
-			for(let i=0;i<8;i++)
+			for(let i=0;i<6;i++)
 			{
-				sheet.getCell('A'+(row+i)).border=
+				sheet.getCell('B'+(row+i)).border=
 				{
-					right: {style:'thin'}
+					right: {style:'thin'},
 				}
 			}
-				sheet.getCell('A'+(row+8)).border={
+				sheet.getCell('A'+(row+6)).border={
+					bottom: {style:'thin'}
+				}
+				sheet.getCell('B'+(row+6)).border={
 					right: {style:'thin'},
 					bottom: {style:'thin'}
 				}
