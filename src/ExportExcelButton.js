@@ -3,26 +3,31 @@ const ExcelJs = require("exceljs");
 //input product data
 const ArrayOfProductObject=[
 	{
-		description:'Testing Product 001 (0000-0000-0000-0000)',
-		unitPrice:'10.00',
+		description:'Alibaba Cloud - UID: 3165563165565656',
+		unitPrice:'521.45',
 		quantity:'1',
-		DiscountRate:15,
+		DiscountRate:0.15,
 	},
 	{
-		description:'Testing Product 002 (0000-0000-0000-0000)',
-		unitPrice:'33.69',
+		description:'Alibaba Cloud - UID: 5445646898989563',
+		unitPrice:'12.54',
 		quantity:'1',
-		DiscountRate:15,
+		DiscountRate:0.15,
 	},
 	{
-		description:'Testing Product 003 (0000-0000-0000-0000)',
-		unitPrice:'21.13',
+		description:'Alibaba Cloud - UID: 5445646898989563',
+		unitPrice:'56183.12',
 		quantity:'1',
-		DiscountRate:12,
+		DiscountRate:0.15,
+	},
+	{
+		description:'Azure - XX-03(sd54-56as-461e-33cd-12dsbd44)',
+		unitPrice:'1386.15',
+		quantity:'1',
+		DiscountRate:0.12,
 	},
 ]
-// discount amount
-let discount=0.2;
+// exchange rate
 let exchangeRate=7.9;
 const titleFont={
 	bold:true,
@@ -71,7 +76,7 @@ function ExportExcelButton (){
 		sheet.getCell(destination).value=context;
 		fillBackgroundColor(destination,'FF1F497D');
 		sheet.getCell(destination).font=titleFont;
-		sheet.getCell(destination).alignment={horizontal: align};
+		sheet.getCell(destination).alignment={ wrapText: true,vertical: 'middle',horizontal: align};
 	}
 
 	function addProductDetail(destination,content,align){
@@ -79,26 +84,33 @@ function ExportExcelButton (){
 			left: {style:'thin'},
 			right: {style:'thin'}
 		};
-		sheet.getCell(destination).value=content;
-		sheet.getCell(destination).numFmt='00.00'
+		if(content!==0){
+			sheet.getCell(destination).value=content;
+		sheet.getCell(destination).numFmt='0.00'
 		sheet.getCell(destination).alignment={vertical: 'middle',horizontal:align};
+		}
+		
 	}	
 	function fillInRow(row,color){
 		fillBackgroundColor('A'+row,color);
 		fillBackgroundColor('C'+row,color);
 		fillBackgroundColor('D'+row,color);
 		fillBackgroundColor('F'+row,color);
+		fillBackgroundColor('G'+row,color);
+		fillBackgroundColor('H'+row,color);
 	}
-	function addProductArray(description,unitPrice,QTY,amount,row){
+	function addProductArray(description,unitPrice,QTY,amount,discount,row){
 		
 		Merge('A'+row,'B'+row,description,'left');
-		addProductDetail('C'+row,unitPrice,'right');
+		addProductDetail('C'+row,unitPrice,'center');
 		Merge('D'+row,'E'+row,QTY,'center');
-		addProductDetail('F'+row,amount,'right');
+		addProductDetail('F'+row,discount,'center');
+		sheet.getCell('F'+row).numFmt='00%'
+		addProductDetail('G'+row,amount*discount,'center');
+		addProductDetail('H'+row,amount*(1-discount),'center');
 		if(row%2===1)
 			{
 				fillInRow(row,'FFF2F2F2');
-				fillBackgroundColor('D'+row,'FFFFFFFF');
 			}
 	}
 	function addContextAndAlign(cell,context,aligns){
@@ -108,7 +120,14 @@ function ExportExcelButton (){
 	function totalAmount(){
 		let sum=0;
 		for(let i=0;i<ArrayOfProductObject.length;i++)
-		{sum+=parseFloat(ArrayOfProductObject[i].unitPrice)*parseFloat(ArrayOfProductObject[i].quantity).toFixed(2);}
+		{sum+=parseFloat(ArrayOfProductObject[i].unitPrice)*parseFloat(ArrayOfProductObject[i].quantity);}
+		return sum;
+	}
+	function discountAmount(){
+		let sum=0;
+		for(let i=0;i<ArrayOfProductObject.length;i++)
+		{sum+=parseFloat(ArrayOfProductObject[i].unitPrice)*parseFloat(ArrayOfProductObject[i].quantity)
+			*(ArrayOfProductObject[i].DiscountRate);}
 		return sum;
 	}
 		//Customer Object
@@ -148,19 +167,30 @@ function ExportExcelButton (){
 		addTitle('C16','UNIT PRICE','center');
 		Merge('D16','E16','QTY ','center');
 		addTitle('D16','QTY','center');
-		addTitle('F16','AMOUNT','center');
+		addTitle('F16','Discount Rate','center');
+		addTitle('G16','Discount Amount','center');
+		addTitle('H16','Discounted Price','center');
+		
 		//add Product Array context
-		addProductArray('','','','',17);
+		addProductArray('','','','','',17);
 		fillBackgroundColor('D17','FFF2F2F2');
-		for(let i=0;i<ArrayOfProductObject.length;i++){
-			addProductArray(ArrayOfProductObject[i].description,ArrayOfProductObject[i].unitPrice,ArrayOfProductObject[i].quantity,
-				parseFloat(ArrayOfProductObject[i].unitPrice)*parseFloat(ArrayOfProductObject[i].quantity).toFixed(2),18+i);
+		for(let i=0;i<11;i++){
+			if(i<ArrayOfProductObject.length){
+				addProductArray(ArrayOfProductObject[i].description,ArrayOfProductObject[i].unitPrice,ArrayOfProductObject[i].quantity,
+				parseFloat(ArrayOfProductObject[i].unitPrice)*parseFloat(ArrayOfProductObject[i].quantity).toFixed(2),
+				ArrayOfProductObject[i].DiscountRate,18+i);
+				
+			}
+			else
+			{
+				addProductArray('','','','','',18+i);
+			}
 			const row=sheet.getRow(18+i);
-			row.height=25;
-			if(i===ArrayOfProductObject.length-1){
-				addProductArray('','','','',18+i+1);
+			row.height=46;
+			if(i===10){
+				addProductArray('','','','','',18+i+1);
 				fillInRow(18+i+1,'FFD9D9D9');
-				printTermsAndConditions(18+i+3);
+				printTermsAndConditions(18+i+4);
 				printBillingInfo(18+i+2);
 			}
 		}
@@ -191,28 +221,18 @@ function ExportExcelButton (){
 			}
 		//Billing info
 		function printBillingInfo(row){
-			sheet.getCell('E'+row).value='Subtotal';
-			sheet.getCell('F'+row).value=totalAmount();
-			sheet.getCell('F'+row).numFmt='_("USD"* #,##0.00_);_("USD"* (#,##0.00);_("$"* "-"??_);_(@_)';
-			sheet.getCell('E'+(row+1)).value='Off';
-			addDataObject('F'+(row+1),discount,'right','thin');
-			sheet.getCell('F'+(row+1)).numFmt='00.000%'
-			sheet.getCell('E'+(row+2)).value='Discount';
-			sheet.getCell('E'+(row+2)).border={
+			addContextAndAlign('B'+row,'Subtotal : ','right')
+			sheet.getCell('C'+row).value=totalAmount();
+			sheet.getCell('C'+row).numFmt='#,##0.00;##0.00';
+			sheet.getCell('G'+row).value=discountAmount();
+			sheet.getCell('H'+row).value=totalAmount()-discountAmount();
+			sheet.getCell('H'+row).numFmt='"USD "#,##0.00;##0.00';
+			sheet.getCell('H'+(row+1)).value=(totalAmount()-discountAmount())*exchangeRate;
+			sheet.getCell('H'+(row+1)).numFmt='"HKD "#,##0.00;##0.00';
+			sheet.getCell('H'+(row+1)).font={size: 14}
+			sheet.getCell('H'+(row+1)).border={
 				bottom:{style:'double'},
 			};
-			addDataObject('F'+(row+2),sheet.getCell('F'+row).value*discount,'right','thin');
-			sheet.getCell('F'+(row+2)).numFmt='_("$"* #,##0.00_);_("$"* (#,##0.00);_("$"* "-"??_);_(@_)';
-			sheet.getCell('F'+(row+2)).border={
-				top: {style:'thin'},
-				left: {style:'thin'},
-				right: {style:'thin'},
-				bottom:{style:'double'},
-			};
-			sheet.getCell('E'+(row+3)).value='TOTAL';
-			sheet.getCell('E'+(row+3)).font={bold: true,};
-			sheet.getCell('F'+(row+3)).value=sheet.getCell('F'+row).value-sheet.getCell('F'+(row+2)).value;
-			sheet.getCell('F'+(row+3)).numFmt='_("USD"* #,##0.00_);_("USD"* (#,##0.00);_("$"* "-"??_);_(@_)';
 		}
 
     // output
