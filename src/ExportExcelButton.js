@@ -1,5 +1,7 @@
 import React from 'react';
 const ExcelJs = require("exceljs");
+// exchange rate
+let exchangeRate=7.9;
 //input product data
 const ArrayOfProductObject=[
 	{
@@ -27,8 +29,7 @@ const ArrayOfProductObject=[
 		DiscountRate:0.12,
 	},
 ]
-// exchange rate
-let exchangeRate=7.9;
+
 const titleFont={
 	bold:true,
 	color: {argb:'FFFFFFFF'},
@@ -37,7 +38,12 @@ function ExportExcelButton (){
   function onClick(){
     const workbook = new ExcelJs.Workbook(); 
     const sheet = workbook.addWorksheet('Page1',{views: [{showGridLines: false}]});
-	
+	sheet.eachRow(function(row, rowNumber){
+		row.eachCell( function(cell, colNumber){
+			if(cell.value)
+				row.getCell(colNumber).font = {size:10};
+		});
+	});
 	sheet.getColumn(1).width=40;
 	sheet.getColumn(2).width=40;
 	sheet.getColumn(3).width=15;
@@ -74,7 +80,7 @@ function ExportExcelButton (){
 	}
 	function addTitle(destination,context,align){
 		sheet.getCell(destination).value=context;
-		fillBackgroundColor(destination,'FF1F497D');
+		fillBackgroundColor(destination,'FF3B4E87');
 		sheet.getCell(destination).font=titleFont;
 		sheet.getCell(destination).alignment={ wrapText: true,vertical: 'middle',horizontal: align};
 	}
@@ -85,7 +91,7 @@ function ExportExcelButton (){
 			right: {style:'thin'}
 		};
 		if(content!==0){
-			sheet.getCell(destination).value=content;
+		sheet.getCell(destination).value=content;
 		sheet.getCell(destination).numFmt='0.00'
 		sheet.getCell(destination).alignment={vertical: 'middle',horizontal:align};
 		}
@@ -131,14 +137,16 @@ function ExportExcelButton (){
 		return sum;
 	}
 		//Customer Object
-		Merge('A1','C1','XXXXX Limited')
-		addContextAndAlign('A1','XXXXX Limited','left')
+		Merge('A1','C1','XXX Company Limited')
+		addContextAndAlign('A1','XXX Company Limited','left')
 		sheet.getCell('A1').alignment = { 
 			indent: 5,
 			vertical: 'middle'
 		};
 		sheet.getCell('A1').font={
-			size: 20
+			name: 'Arial',
+			size: 20,
+			color:{argb:'BF2C3A65'}
 		};
 		addTitle('A9','CUSTOMER');
 		sheet.getCell('A2').value='Unit XXX XXX Centre, ';
@@ -150,9 +158,12 @@ function ExportExcelButton (){
 		//Data_Object 
 		Merge('E1','H1','Invoice ','right')
 		sheet.getCell('E1').font={
+			name: 'Arial',
 			size: 26,
-			color: { argb: 'FF8DB4E2' },
+			color: { argb: '997A8DC5' },
+			bold:true
 		};
+		sheet.getCell('E1').alignment={vertical: 'bottom',horizontal:'right'};
 		addContextAndAlign('E3','Data ','right')
 		addContextAndAlign('E4','INVOICE# ','right')
 		addContextAndAlign('E5','CUSTOMER ID ','right')
@@ -174,24 +185,28 @@ function ExportExcelButton (){
 		//add Product Array context
 		addProductArray('','','','','',17);
 		fillBackgroundColor('D17','FFF2F2F2');
+		addProductArray('Servier Period : 1 Jul 2022 - 31 Jul 2022','','','','',18);
+		sheet.getRow(18).height=25;
+		sheet.getCell('A18').font={underline: true,bold: true};
+		addProductArray('','','','','',19);
 		for(let i=0;i<11;i++){
 			if(i<ArrayOfProductObject.length){
 				addProductArray(ArrayOfProductObject[i].description,ArrayOfProductObject[i].unitPrice,ArrayOfProductObject[i].quantity,
 				parseFloat(ArrayOfProductObject[i].unitPrice)*parseFloat(ArrayOfProductObject[i].quantity).toFixed(2),
-				ArrayOfProductObject[i].DiscountRate,18+i);
+				ArrayOfProductObject[i].DiscountRate,20+i);
 				
 			}
 			else
 			{
-				addProductArray('','','','','',18+i);
+				addProductArray('','','','','',20+i);
 			}
-			const row=sheet.getRow(18+i);
+			const row=sheet.getRow(20+i);
 			row.height=46;
 			if(i===10){
-				addProductArray('','','','','',18+i+1);
-				fillInRow(18+i+1,'FFD9D9D9');
-				printTermsAndConditions(18+i+4);
-				printBillingInfo(18+i+2);
+				addProductArray('','','','','',20+i+1);
+				fillInRow(20+i+1,'FFD9D9D9');
+				printTermsAndConditions(20+i+4);
+				printBillingInfo(20+i+2);
 			}
 		}
 		//TermsAndConditions
@@ -199,7 +214,7 @@ function ExportExcelButton (){
 			Merge('A'+row,'B'+row,'','left');
 			addTitle('A'+row,'TERMS AND CONDITIONS','left');
 			sheet.getCell('A'+(row+1)).value='1.Payment Terms: 14 Day after invoice';
-			sheet.getCell('A'+(row+2)).value='2.Exchange Rate :'+exchangeRate;
+			sheet.getCell('A'+(row+2)).value='2.Exchange Rate : '+exchangeRate;
 			sheet.getCell('A'+(row+3)).value='Bank info : XXX Bank /XX銀行';
 			sheet.getCell('A'+(row+4)).value='                 XXX Company Limited ';
 			sheet.getCell('A'+(row+5)).value='                 Acct No : 6549813';
